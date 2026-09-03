@@ -1,0 +1,15 @@
+node_modules
+.next
+.env*
+!.env.example
+!.env.prod.example
+npm-debug.log
+pnpm-debug.log
+yarn-error.log
+.DS_Store
+.trae
+coverage
+playwright-report
+test-results
+.vercel
+*.tsbuildinfo

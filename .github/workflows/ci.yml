@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: uplotr
+          POSTGRES_PASSWORD: uplotr_test
+          POSTGRES_DB: uplotr_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U uplotr -d uplotr_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://uplotr:uplotr_test@localhost:5432/uplotr_test?schema=public
+      INTEGRATION_DATABASE_URL: postgresql://uplotr:uplotr_test@localhost:5432/uplotr_test?schema=public
+      AUTH_SECRET: ci-only-session-secret-with-at-least-32-characters
+      AUTH_MODE: REQUIRED
+      CRON_SECRET: ci-only-cron-secret-with-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma migrate deploy
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm test:integration
+      - run: pnpm audit --audit-level=high
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e --project=desktop-chromium
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: quality
+    env:
+      AUTH_SECRET: ci-only-session-secret-with-at-least-32-characters
+      AUTH_MODE: REQUIRED
+      CRON_SECRET: ci-only-cron-secret-with-at-least-32-characters
+      DB_PASSWORD: uplotr_compose_test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ghcr.io/iblh/uplotr:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test Docker Compose from an empty database
+        run: |
+          docker compose up -d --wait --wait-timeout 120
+
+          cookie_jar="${RUNNER_TEMP}/uplotr-ci-cookies.txt"
+          curl --fail --silent --show-error \
+            --cookie-jar "${cookie_jar}" \
+            --header 'Content-Type: application/json' \
+            --data '{"username":"compose-admin","password":"correct-horse-battery-staple","mapProvider":"OPENFREEMAP"}' \
+            http://127.0.0.1:3000/api/auth/setup >/dev/null
+
+          api_key="$(curl --fail --silent --show-error \
+            --cookie "${cookie_jar}" \
+            --header 'Content-Type: application/json' \
+            --data '{"name":"Compose smoke test"}' \
+            http://127.0.0.1:3000/api/keys | jq -er '.key')"
+
+          curl --fail --silent --show-error \
+            --header "Authorization: Bearer ${api_key}" \
+            --header 'Content-Type: application/json' \
+            --data '{"device_id":"compose-smoke-device","lat":37.7749,"lon":-122.4194,"battery":88}' \
+            http://127.0.0.1:3000/api/v1/ingest >/dev/null
+
+          curl --fail --silent --show-error \
+            --cookie "${cookie_jar}" \
+            http://127.0.0.1:3000/api/devices | \
+            jq -e 'any(.[]; .externalId == "compose-smoke-device")' >/dev/null
+      - name: Show Compose logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Stop Docker Compose
+        if: always()
+        run: docker compose down --volumes

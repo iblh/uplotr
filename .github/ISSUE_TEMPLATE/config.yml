@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/iblh/uplotr/discussions
+    about: Use Discussions for support questions and open-ended ideas.
+  - name: Security report
+    url: https://github.com/iblh/uplotr/security/advisories/new
+    about: Privately report a suspected vulnerability.

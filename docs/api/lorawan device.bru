@@ -1,0 +1,75 @@
+meta {
+  name: lorawan device
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/lorawan/webhook
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{apiKey}}
+}
+
+body:json {
+  {
+    "app_eui": "6081F9",
+    "dc": {
+      "balance": 50000,
+      "nonce": 1
+    },
+    "decoded": {
+      "payload": {
+        "accuracy": 2.5,
+        "altitude": 105,
+        "battery": 98,
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "status": "SOS"
+      },
+      "status": "success"
+    },
+    "dev_eui": "6081F94",
+    "devaddr": "2000",
+    "fcnt": 10,
+    "hotspots": [
+      {
+        "channel": 1,
+        "frequency": 904.1,
+        "id": "112...",
+        "lat": 37.775,
+        "long": -122.420,
+        "name": "clever-basil-mammoth",
+        "reported_at": 1629834567,
+        "rssi": -95,
+        "snr": 2.5,
+        "spreading": "SF9BW125",
+        "status": "success"
+      }
+    ],
+    "id": "12345678",
+    "metadata": {
+      "labels": [
+        {
+          "id": "...",
+          "name": "tracker-group",
+          "organization_id": "..."
+        }
+      ]
+    },
+    "name": "Tracker 01",
+    "payload": "Base64EncodedString==",
+    "port": 1,
+    "reported_at": 1629834567,
+    "rssi": -95,
+    "snr": 2.5
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

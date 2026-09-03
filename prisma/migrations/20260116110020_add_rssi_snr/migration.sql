@@ -1,0 +1,11 @@
+-- AlterTable
+ALTER TABLE "device_events" ADD COLUMN     "rssi" DOUBLE PRECISION,
+ADD COLUMN     "snr" DOUBLE PRECISION;
+
+-- AlterTable
+ALTER TABLE "devices" ADD COLUMN     "lastRssi" DOUBLE PRECISION,
+ADD COLUMN     "lastSnr" DOUBLE PRECISION;
+
+-- AlterTable
+ALTER TABLE "positions" ADD COLUMN     "rssi" DOUBLE PRECISION,
+ADD COLUMN     "snr" DOUBLE PRECISION;

@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  role         String   @default("user") // 'admin', 'user'
+  createdAt    DateTime @default(now())
+
+  @@map("users")
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  name       String
+  key        String?   @unique // Legacy plaintext value; removed after the beta migration window.
+  keyHash    String?   @unique
+  prefix     String?
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@map("api_keys")
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model Device {
+  id          String     @id @default(uuid())
+  externalId  String?    @unique
+  name        String?
+  type        String     @default("lorawan") // 'lorawan', 'generic', 'wifi', '4g'
+  source      String?    // 'lorawan', 'http', 'mqtt'
+  group       String?    // Device group for organization
+  tags        String[]   // Tags for filtering and categorization
+  lastSeen    DateTime
+  lastLat     Float?
+  lastLon     Float?
+  lastBattery Int?
+  lastRssi    Float?
+  lastSnr     Float?
+  
+  mapperId    String?
+  mapper      PayloadMapper? @relation(fields: [mapperId], references: [id])
+
+  positions   Position[]
+  events      DeviceEvent[]
+
+  @@index([lastSeen])
+  @@map("devices")
+}
+
+model Position {
+  id        String   @id @default(uuid())
+  deviceId  String
+  device    Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  ts        DateTime
+  lat       Float
+  lon       Float
+  battery   Int?
+  temp      Float?
+  light     Float?
+  rssi      Float?
+  snr       Float?
+  source    String?
+
+  @@index([deviceId])
+  @@index([ts])
+  @@index([deviceId, ts])
+  @@map("positions")
+}
+
+model DeviceEvent {
+  id        String   @id @default(uuid())
+  deviceId  String
+  device    Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  ts        DateTime @default(now())
+  payload   Json     // 完整的原始 JSON 数据
+
+  @@index([deviceId])
+  @@index([ts])
+  @@index([deviceId, ts])
+  @@map("device_events")
+}
+
+model PayloadMapper {
+  id           String   @id @default(uuid())
+  name         String
+  targetType   String?  // Optional: apply only to specific device type
+  isTemplate   Boolean  @default(true)
+  
+  // JSONPath strings for mapping
+  latPath      String   // e.g. "$.object.gps.latitude"
+  lonPath      String   // e.g. "$.object.gps.longitude"
+  tsPath       String?  // e.g. "$.time"
+  batteryPath  String?
+  rssiPath     String?  // New: Signal strength
+  snrPath      String?  // New: Signal-to-noise ratio
+  tempPath     String?
+  lightPath    String?
+  customFields Json?    // Flexible extra fields mapping: { "field_name": "json_path" }
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  devices      Device[]
+
+  @@map("payload_mappers")
+}
+
+model RateLimitBucket {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+  expiresAt   DateTime
+  updatedAt   DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@map("rate_limit_buckets")
+}

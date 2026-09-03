@@ -1,0 +1,37 @@
+meta {
+  name: generic device
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/ingest
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{apiKey}}
+}
+
+body:json {
+  {
+    "device_id": "my-tracker-001",
+    "lat": 37.7749,
+    "lon": -122.4194,
+    "timestamp": 1771136090000,
+    "battery": 85,
+    "type": "4g",
+    "temp": 22.5,
+    "light": 100,
+    "payload": {
+      "extra_info": "debug_data"
+    }
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

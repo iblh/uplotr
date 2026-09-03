@@ -1,0 +1,51 @@
+services:
+    app:
+        # Use the pre-built image from GitHub Container Registry
+        image: ghcr.io/iblh/uplotr:latest
+        container_name: uplotr_app
+        restart: always
+        ports:
+            - '3000:3000'
+        environment:
+            # Database connection string (points to the 'db' service)
+            - DATABASE_URL=postgresql://uplotr_user:${DB_PASSWORD:?Set DB_PASSWORD in .env}@db:5432/uplotr_db?schema=public
+
+            # Authentication
+            # Used to sign session cookies (JWT). MUST be a long random string.
+            - AUTH_SECRET=${AUTH_SECRET:?Set AUTH_SECRET in .env}
+
+            - AUTH_MODE=${AUTH_MODE:-REQUIRED}
+            - CRON_SECRET=${CRON_SECRET:?Set CRON_SECRET in .env}
+            - MAP_PROVIDER=${MAP_PROVIDER:-OPENFREEMAP}
+            - MAPBOX_TOKEN=${MAPBOX_TOKEN:-}
+
+        depends_on:
+            db:
+                condition: service_healthy
+        healthcheck:
+            test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:3000/api/health']
+            interval: 30s
+            timeout: 5s
+            retries: 3
+
+    db:
+        image: postgres:15-alpine
+        container_name: uplotr_db
+        restart: always
+        environment:
+            - POSTGRES_USER=uplotr_user
+            - POSTGRES_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in .env}
+            - POSTGRES_DB=uplotr_db
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U uplotr_user -d uplotr_db']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        # For production, we DO NOT expose the database port to the host
+        # ports:
+        #   - "5432:5432"
+
+volumes:
+    db_data:
