@@ -45,13 +45,13 @@ export function InfoPanel({ position }: InfoPanelProps) {
            {position.temp !== null && (
              <div className="flex items-center justify-between text-xs font-mono">
                <span className="text-muted-foreground text-[10px]">TMP</span>
-               <span className="text-orange-500">{position.temp}°</span>
+               <span className="text-orange-500">{position.temp.toFixed(1)}°</span>
              </div>
            )}
            {position.light !== null && (
              <div className="flex items-center justify-between text-xs font-mono">
                <span className="text-muted-foreground text-[10px]">LUX</span>
-               <span className="text-yellow-500">{position.light}</span>
+               <span className="text-yellow-500">{position.light.toFixed(0)}</span>
              </div>
            )}
            {position.snr !== null && (
@@ -103,14 +103,14 @@ export function InfoPanel({ position }: InfoPanelProps) {
                     <Thermometer className="w-3.5 h-3.5" />
                     <span className="text-[11px] font-medium">Temp</span>
                  </div>
-                 <span className="text-xs font-mono text-foreground/80">{position.temp ?? '--'}°C</span>
+                 <span className="text-xs font-mono text-foreground/80">{position.temp?.toFixed(1) ?? '--'}°C</span>
               </div>
               <div className="flex items-center justify-between group">
                  <div className="flex items-center gap-2 text-muted-foreground group-hover:text-yellow-500 transition-colors">
                     <Sun className="w-3.5 h-3.5" />
                     <span className="text-[11px] font-medium">Light</span>
                  </div>
-                 <span className="text-xs font-mono text-foreground/80">{position.light ?? '--'} Lx</span>
+                 <span className="text-xs font-mono text-foreground/80">{position.light?.toFixed(0) ?? '--'} Lx</span>
               </div>
            </div>
            
