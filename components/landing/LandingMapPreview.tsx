@@ -2,14 +2,14 @@
 
 import dynamic from 'next/dynamic';
 import { MapPin, Radio, Route } from 'lucide-react';
-import { demoPositionsByDevice, getRouteStats } from '@/lib/demo-data';
+import { getRouteStats, landingPreviewPositions } from '@/lib/demo-data';
 
 const MapContainer = dynamic(
   () => import('@/components/map/MapContainer').then((module) => module.MapContainer),
   { ssr: false, loading: () => <div className="h-full animate-pulse bg-slate-900" /> },
 );
 
-const positions = demoPositionsByDevice['demo-van'];
+const positions = landingPreviewPositions;
 const latest = positions.at(-1)!;
 const stats = getRouteStats(positions);
 
@@ -25,6 +25,7 @@ export function LandingMapPreview() {
         interactive={false}
         showControls={false}
         routeColor="#38bdf8"
+        pointStride={4}
         className="h-full border-0"
       />
 

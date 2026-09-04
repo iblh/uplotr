@@ -119,6 +119,39 @@ const routeSpecs: DemoRouteSpec[] = [
   },
 ];
 
+const landingPreviewSpec: DemoRouteSpec = {
+  id: 'landing-van',
+  externalId: 'VAN-07',
+  name: 'SF delivery van',
+  type: 'generic',
+  source: 'REST',
+  group: 'West coast',
+  tags: ['delivery', 'vehicle'],
+  startAt: '2026-09-02T14:42:00Z',
+  intervalSeconds: 42,
+  pointsPerSegment: 4,
+  startBattery: 93,
+  batteryDrop: 11,
+  tempBase: 21,
+  rssiBase: -70,
+  snrBase: 8.8,
+  waypoints: [
+    [37.8078, -122.4177],
+    [37.8032, -122.4368],
+    [37.7989, -122.4488],
+    [37.7857, -122.4667],
+    [37.7694, -122.4862],
+    [37.7665, -122.4511],
+    [37.7685, -122.4292],
+    [37.7749, -122.4194],
+    [37.7878, -122.4075],
+    [37.7936, -122.3930],
+    [37.7794, -122.3890],
+    [37.7539, -122.3877],
+    [37.7388, -122.3971],
+  ],
+};
+
 function interpolateRoute(spec: DemoRouteSpec): Position[] {
   const coordinates: Coordinate[] = [];
 
@@ -153,6 +186,8 @@ function interpolateRoute(spec: DemoRouteSpec): Position[] {
     };
   });
 }
+
+export const landingPreviewPositions = interpolateRoute(landingPreviewSpec);
 
 export const demoPositionsByDevice = Object.fromEntries(
   routeSpecs.map((spec) => [spec.id, interpolateRoute(spec)]),

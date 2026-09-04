@@ -40,6 +40,7 @@ interface MapContainerProps {
   interactive?: boolean;
   showControls?: boolean;
   routeColor?: string;
+  pointStride?: number;
   className?: string;
 }
 
@@ -53,6 +54,7 @@ export function MapContainer({
   interactive = true,
   showControls = true,
   routeColor = '#3b82f6',
+  pointStride = 1,
   className,
 }: MapContainerProps) {
   const mapRef = React.useRef<any>(null);
@@ -104,18 +106,25 @@ export function MapContainer({
   const pointsData = React.useMemo(() => {
     if (!positions || positions.length === 0) return null;
 
+    const normalizedStride = Math.max(1, Math.floor(pointStride));
+    const sampledPositions = positions.flatMap((position, index) => (
+      index === 0 || index === positions.length - 1 || index % normalizedStride === 0
+        ? [{ position, index }]
+        : []
+    ));
+
     return {
       type: 'FeatureCollection' as const,
-      features: positions.map((p, index) => ({
+      features: sampledPositions.map(({ position, index }) => ({
         type: 'Feature' as const,
         properties: { index },
         geometry: {
           type: 'Point' as const,
-          coordinates: [p.lon, p.lat]
+          coordinates: [position.lon, position.lat]
         }
       }))
     };
-  }, [positions]);
+  }, [pointStride, positions]);
 
   const boundsPositions = fitPositions ?? positions;
 

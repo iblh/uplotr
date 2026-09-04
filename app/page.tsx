@@ -141,7 +141,7 @@ export default function HomePage() {
           <Server className="h-6 w-6 text-sky-300" />
           <h2 className="mt-6 text-3xl font-semibold tracking-tight">Your deployment. Your database. Your location history.</h2>
           <p className="mt-4 max-w-xl leading-7 text-zinc-400">Run uplotr on your own infrastructure, choose how long data stays, and keep analytics disabled by default. The public demo is synthetic and cannot write to the official instance.</p>
-          <Link href="/docs/docker" className="mt-7 inline-flex items-center gap-2 font-medium text-sky-300 hover:text-sky-200">
+          <Link href="/docs/deployment" className="mt-7 inline-flex items-center gap-2 font-medium text-sky-300 hover:text-sky-200">
             Read the self-hosting guide <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

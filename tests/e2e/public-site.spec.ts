@@ -7,6 +7,7 @@ test('public landing, docs, demo, and health are available', async ({ page, requ
   await expect(page.getByRole('link', { name: 'Docs', exact: true }).first()).not.toHaveAttribute('target', '_blank');
   await expect(page.getByRole('link', { name: 'Demo', exact: true })).not.toHaveAttribute('target', '_blank');
   await expect(page.getByRole('link', { name: /GitHub/i }).first()).toHaveAttribute('target', '_blank');
+  await expect(page.getByRole('link', { name: /self-hosting guide/i })).toHaveAttribute('href', '/docs/deployment');
 
   await page.goto('/demo');
   await expect(page.getByText(/synthetic · read only/i)).toBeVisible();

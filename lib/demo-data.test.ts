@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { demoDevices, demoPositionsByDevice, getRouteStats } from './demo-data';
+import { demoDevices, demoPositionsByDevice, getRouteStats, landingPreviewPositions } from './demo-data';
 
 describe('synthetic demo routes', () => {
   it('provides multiple substantial, non-linear routes', () => {
@@ -32,5 +32,14 @@ describe('synthetic demo routes', () => {
       expect(stats.averageSpeedKph).toBeLessThan(40);
       expect(stats.batteryUsed).toBeGreaterThan(0);
     }
+  });
+
+  it('uses a broad route for the landing preview', () => {
+    const latitudes = landingPreviewPositions.map((position) => position.lat);
+    const longitudes = landingPreviewPositions.map((position) => position.lon);
+
+    expect(landingPreviewPositions).toHaveLength(49);
+    expect(Math.max(...latitudes) - Math.min(...latitudes)).toBeGreaterThan(0.06);
+    expect(Math.max(...longitudes) - Math.min(...longitudes)).toBeGreaterThan(0.09);
   });
 });
