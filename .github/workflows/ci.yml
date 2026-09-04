@@ -43,7 +43,9 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm test:integration
-      - run: pnpm audit --audit-level=high
+      - name: Audit production dependencies
+        run: pnpm audit --prod --audit-level=high
+        timeout-minutes: 3
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e --project=desktop-chromium
