@@ -101,6 +101,30 @@
   }
 }
 
+.docs-inline-code {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.375rem;
+  background: hsl(var(--muted));
+  padding: 0.12rem 0.35rem;
+  color: hsl(var(--foreground));
+}
+
+.docs-code-block > .docs-inline-code {
+  display: block;
+  min-width: max-content;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 1rem 1.125rem;
+  color: #e2e8f0;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+}
+
+.docs-code-block ::selection {
+  background: rgba(56, 189, 248, 0.32);
+}
+
 /* Mapbox specific overrides for dark mode feel */
 .mapboxgl-popup-content {
   @apply bg-background border border-border text-foreground rounded-md shadow-lg p-2 !important;

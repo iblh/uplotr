@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Loader2,
   ArrowRight,
   ShieldCheck,
-  LayoutDashboard,
   Map,
   Globe,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import packageJson from '@/package.json';
 
 interface LoginFormProps {
   nextPath: string;
@@ -137,10 +139,11 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         {/* Abstract Background */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/40 via-zinc-900/0 to-zinc-900/0" />
         <div className="relative z-10">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <LayoutDashboard className="h-6 w-6 text-indigo-400" />
+          <Link href="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight" aria-label="uplotr home">
+            <Image src="/logo.svg" alt="" width={30} height={30} className="invert" priority />
             <span>uplotr</span>
-          </div>
+            <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-sky-300">Beta</span>
+          </Link>
         </div>
 
         <div className="relative z-10 max-w-md space-y-4">
@@ -156,7 +159,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         </div>
 
         <div className="relative z-10 flex items-center gap-4 text-sm text-zinc-500">
-          <span>v0.2.0-beta.1</span>
+          <span>v{packageJson.version}</span>
           <span className="h-1 w-1 rounded-full bg-zinc-700" />
           <span>Open Source</span>
         </div>
@@ -165,6 +168,10 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       {/* Right Panel - Form */}
       <div className="flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-[360px] space-y-8">
+          <Link href="/" className="mx-auto flex w-fit items-center gap-2 text-lg font-semibold lg:hidden" aria-label="uplotr home">
+            <Image src="/logo.svg" alt="" width={28} height={28} className="dark:invert" priority />
+            <span>uplotr</span>
+          </Link>
           <div className="space-y-2 text-center lg:text-left">
             <h2 className="text-2xl font-semibold tracking-tight">
               {isSetupMode ? "Create Admin Account" : "Sign in to Dashboard"}
