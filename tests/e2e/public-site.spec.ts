@@ -4,13 +4,21 @@ test('public landing, docs, demo, and health are available', async ({ page, requ
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Get device locations');
   await expect(page.getByRole('link', { name: /try the read-only demo/i })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Docs', exact: true }).first()).not.toHaveAttribute('target', '_blank');
+  await expect(page.getByRole('link', { name: 'Demo', exact: true })).not.toHaveAttribute('target', '_blank');
+  await expect(page.getByRole('link', { name: /GitHub/i }).first()).toHaveAttribute('target', '_blank');
 
   await page.goto('/demo');
   await expect(page.getByText(/synthetic · read only/i)).toBeVisible();
   await expect(page.getByRole('button', { name: /sf delivery van/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /nyc courier/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /austin field tracker/i })).toBeVisible();
+  await expect(page.getByText(/route summary/i)).toBeVisible();
 
-  await page.goto('/docs');
-  await expect(page.getByRole('heading', { name: /build your tracking console/i })).toBeVisible();
+  await page.goto('/docs/quick-start');
+  await expect(page.getByRole('heading', { name: /quick start/i })).toBeVisible();
+  await expect(page.locator('pre.docs-code-block').first()).toBeVisible();
+  await expect(page.locator('pre.docs-code-block code').first()).toHaveCSS('color', 'rgb(226, 232, 240)');
 
   const health = await request.get('/api/health');
   expect(health.status()).toBe(200);

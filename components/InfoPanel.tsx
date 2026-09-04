@@ -134,9 +134,11 @@ export function InfoPanel({ position }: InfoPanelProps) {
         </div>
 
         {/* Footer: Location */}
-        <div 
+        <button
+          type="button"
           onClick={handleCopy}
-          className="pt-3 border-t border-border flex items-center gap-2 text-muted-foreground/60 cursor-pointer hover:text-foreground/80 transition-colors group/copy"
+          className="group/copy flex items-center gap-2 border-t border-border pt-3 text-left text-muted-foreground/60 transition-colors hover:text-foreground/80"
+          aria-label="Copy current coordinates"
         >
            {isCopied ? (
              <>
@@ -153,7 +155,7 @@ export function InfoPanel({ position }: InfoPanelProps) {
                </span>
              </>
            )}
-        </div>
+        </button>
 
       </div>
     </>

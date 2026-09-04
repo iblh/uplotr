@@ -38,9 +38,12 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
               p: ({ children }) => <p className="my-4 leading-7 text-muted-foreground">{children}</p>,
               ul: ({ children }) => <ul className="my-4 list-disc space-y-2 pl-6 text-muted-foreground">{children}</ul>,
               ol: ({ children }) => <ol className="my-4 list-decimal space-y-2 pl-6 text-muted-foreground">{children}</ol>,
-              a: ({ href, children }) => <a href={href} className="text-primary underline underline-offset-4">{children}</a>,
-              pre: ({ children }) => <pre className="my-5 overflow-x-auto rounded-lg border bg-zinc-950 p-4 text-sm text-zinc-100">{children}</pre>,
-              code: ({ children }) => <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">{children}</code>,
+              a: ({ href, children }) => {
+                const external = href?.startsWith('http');
+                return <a href={href} target={external ? '_blank' : undefined} rel={external ? 'noreferrer' : undefined} className="text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary">{children}</a>;
+              },
+              pre: ({ children }) => <pre className="docs-code-block my-6 overflow-x-auto rounded-xl border border-zinc-800 bg-[#090d16] text-zinc-100 shadow-sm">{children}</pre>,
+              code: ({ children, className }) => <code className={`docs-inline-code font-mono text-[0.875em] ${className ?? ''}`}>{children}</code>,
               table: ({ children }) => <div className="my-5 overflow-x-auto"><table className="w-full border-collapse text-sm">{children}</table></div>,
               th: ({ children }) => <th className="border bg-muted p-2 text-left">{children}</th>,
               td: ({ children }) => <td className="border p-2 text-muted-foreground">{children}</td>,

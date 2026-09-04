@@ -19,6 +19,7 @@ import MapLibreMap, {
 import { Position } from '@prisma/client';
 import { MapPin } from 'lucide-react';
 import { useTheme } from "next-themes";
+import { cn } from '@/lib/utils';
 
 type MapProvider = 'MAPBOX' | 'OPENFREEMAP';
 
@@ -35,6 +36,11 @@ interface MapContainerProps {
   displayMode: MapDisplayMode;
   providerOverride?: MapProvider;
   mapboxTokenOverride?: string | null;
+  fitPositions?: Position[];
+  interactive?: boolean;
+  showControls?: boolean;
+  routeColor?: string;
+  className?: string;
 }
 
 export function MapContainer({
@@ -43,6 +49,11 @@ export function MapContainer({
   displayMode,
   providerOverride,
   mapboxTokenOverride,
+  fitPositions,
+  interactive = true,
+  showControls = true,
+  routeColor = '#3b82f6',
+  className,
 }: MapContainerProps) {
   const mapRef = React.useRef<any>(null);
   const handleMapLoad = React.useCallback(() => {
@@ -106,21 +117,23 @@ export function MapContainer({
     };
   }, [positions]);
 
-  // Auto-fit bounds when positions change
-  React.useEffect(() => {
-    if (!mapRef.current || positions.length === 0) return;
+  const boundsPositions = fitPositions ?? positions;
 
-    if (positions.length === 1) {
+  // Auto-fit to the full route. Playback can draw a partial route without moving the camera.
+  React.useEffect(() => {
+    if (!mapRef.current || boundsPositions.length === 0) return;
+
+    if (boundsPositions.length === 1) {
       mapRef.current.flyTo({
-        center: [positions[0].lon, positions[0].lat],
+        center: [boundsPositions[0].lon, boundsPositions[0].lat],
         zoom: 14,
         duration: 1000,
       });
       return;
     }
 
-    const initial = positions[0];
-    const bounds = positions.slice(1).reduce(
+    const initial = boundsPositions[0];
+    const bounds = boundsPositions.slice(1).reduce(
       (acc, point) => ({
         minLon: Math.min(acc.minLon, point.lon),
         minLat: Math.min(acc.minLat, point.lat),
@@ -142,7 +155,7 @@ export function MapContainer({
       ],
       { padding: 50, duration: 1000 },
     );
-  }, [positions]);
+  }, [boundsPositions]);
 
   const mapStyle = React.useMemo(() => {
     if (isMapbox) {
@@ -196,7 +209,7 @@ export function MapContainer({
   const showPoints = displayMode === 'points' || displayMode === 'both';
 
   return (
-    <div className="w-full h-full rounded-none md:rounded-lg overflow-hidden border bg-background relative">
+    <div className={cn("relative h-full w-full overflow-hidden rounded-none border bg-background md:rounded-lg", className)}>
       <MapComponent
         key={mapProvider}
         ref={mapRef}
@@ -208,15 +221,30 @@ export function MapContainer({
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
         {...mapProviderProps}
-        attributionControl={false}
+        interactive={interactive}
+        attributionControl
         onLoad={handleMapLoad}
       >
-        <FullscreenControlComponent position="top-right" />
-        <NavigationControlComponent position="top-right" />
+        {showControls && <FullscreenControlComponent position="top-right" />}
+        {showControls && <NavigationControlComponent position="top-right" />}
 
         {/* Trajectory Line */}
         {lineData && showLine && (
           <SourceComponent id="polyline-source" type="geojson" data={lineData}>
+            <LayerComponent
+              id="line-shadow-layer"
+              type="line"
+              layout={{
+                "line-join": "round",
+                "line-cap": "round"
+              }}
+              paint={{
+                "line-color": routeColor,
+                "line-width": 10,
+                "line-opacity": 0.2,
+                "line-blur": 4,
+              }}
+            />
             <LayerComponent
               id="line-layer"
               type="line"
@@ -225,9 +253,9 @@ export function MapContainer({
                 "line-cap": "round"
               }}
               paint={{
-                "line-color": "#3b82f6", // Blue-500
+                "line-color": routeColor,
                 "line-width": 4,
-                "line-opacity": 0.8
+                "line-opacity": 0.95
               }}
             />
           </SourceComponent>
@@ -240,10 +268,10 @@ export function MapContainer({
               id="points-layer"
               type="circle"
               paint={{
-                "circle-radius": 4,
-                "circle-color": "#7dd3fc", // Sky-300
-                "circle-opacity": 0.8,
-                "circle-stroke-width": 1,
+                "circle-radius": 3.5,
+                "circle-color": "#bae6fd",
+                "circle-opacity": 0.9,
+                "circle-stroke-width": 1.5,
                 "circle-stroke-color": "#111827"
               }}
             />
@@ -258,10 +286,10 @@ export function MapContainer({
             anchor="bottom"
           >
             <div className="relative flex flex-col items-center" aria-label="Current device position">
-               <div className="w-8 h-8 text-blue-500 filter drop-shadow-lg">
-                 <MapPin className="w-full h-full fill-blue-500 text-white" />
+               <div className="h-8 w-8 drop-shadow-lg" style={{ color: routeColor }}>
+                 <MapPin className="h-full w-full fill-current stroke-white" />
                </div>
-               <div className="w-2 h-2 bg-blue-500 rounded-full mt-[-2px]" />
+               <div className="mt-[-2px] h-2 w-2 rounded-full" style={{ backgroundColor: routeColor }} />
             </div>
           </MarkerComponent>
         )}
