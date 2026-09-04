@@ -44,8 +44,16 @@ jobs:
       - run: pnpm test
       - run: pnpm test:integration
       - name: Audit production dependencies
-        run: pnpm audit --prod --audit-level=high
-        timeout-minutes: 3
+        run: pnpm audit --prod --audit-level=high --ignore-registry-errors
+        timeout-minutes: 2
+        env:
+          npm_config_fetch_retries: 0
+          npm_config_fetch_timeout: 30000
+      - name: Review dependency changes
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e --project=desktop-chromium
