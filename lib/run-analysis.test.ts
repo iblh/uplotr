@@ -31,6 +31,16 @@ describe('field test run analysis', () => {
     );
   });
 
+  it('uses an explicitly configured cadence to detect shorter outages', () => {
+    const analysis = analyzeRun([
+      { ts: '2026-09-04T10:00:00Z', lat: 37, lon: -122 },
+      { ts: '2026-09-04T10:00:02Z', lat: 37, lon: -122 },
+      { ts: '2026-09-04T10:01:02Z', lat: 37, lon: -122 },
+    ], { expectedIntervalSeconds: 2 });
+
+    expect(analysis.diagnostics.map((item) => item.code)).toContain('LONG_GAP');
+  });
+
   it('compares two deterministic summaries', () => {
     const left = analyzeRun([
       { ts: '2026-09-04T10:00:00Z', lat: 0, lon: 0, battery: 90 },

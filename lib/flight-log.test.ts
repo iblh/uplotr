@@ -28,6 +28,17 @@ describe('flight log parser', () => {
     expect(parsed.points[0].metrics).toMatchObject({ altitude: 10, voltage: 16.4 });
   });
 
+  it('keeps long-running flight-controller clocks relative after one billion microseconds', () => {
+    const parsed = parseFlightLog([
+      'TimeUS,Lat,Lng,Alt',
+      '1000000000,377749000,-1224194000,10',
+      '1001000000,377750000,-1224190000,13',
+    ].join('\n'), 'long-flight.csv', 'ARDUPILOT_CSV');
+
+    expect(parsed.points[1].ts.getTime() - parsed.points[0].ts.getTime()).toBe(1000);
+    expect(Math.abs(Date.now() - parsed.points[1].ts.getTime())).toBeLessThan(5000);
+  });
+
   it('imports a GPX flight track', () => {
     const parsed = parseFlightLog(`<?xml version="1.0"?><gpx><trk><trkseg>
       <trkpt lat="37.1" lon="-122.1"><ele>42</ele><time>2026-09-04T10:00:00Z</time></trkpt>

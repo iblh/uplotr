@@ -205,10 +205,13 @@ export function analyzeRun(input: AnalysisPosition[], options: RunAnalysisOption
   const cadenceSample = [...intervals]
     .sort((a, b) => a - b)
     .slice(0, Math.max(1, Math.ceil(intervals.length / 2)));
-  const expectedIntervalSeconds = options.expectedIntervalSeconds && options.expectedIntervalSeconds > 0
+  const hasExplicitInterval = Boolean(options.expectedIntervalSeconds && options.expectedIntervalSeconds > 0);
+  const expectedIntervalSeconds = hasExplicitInterval
     ? options.expectedIntervalSeconds
     : median(cadenceSample) ?? medianIntervalSeconds ?? 0;
-  const gapThreshold = Math.max(120, expectedIntervalSeconds * 2.5);
+  const gapThreshold = hasExplicitInterval
+    ? expectedIntervalSeconds! * 2.5
+    : Math.max(120, expectedIntervalSeconds! * 2.5);
   const longGaps = intervals.filter((seconds) => seconds > gapThreshold).length;
   const possibleJumps = speeds.filter((speed) => speed > 250).length;
   const insufficientSamples = positions.length < minimumSamples;

@@ -15,15 +15,38 @@ function asMetric(value: unknown): PrimitiveMetric | undefined {
   return undefined;
 }
 
-function addMetrics(target: Record<string, PrimitiveMetric>, source: unknown, includeReserved = true) {
+function addMetrics(
+  target: Record<string, PrimitiveMetric>,
+  priorities: Map<string, number>,
+  source: unknown,
+  priority: number,
+  includeReserved = true,
+) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) return;
 
   for (const [rawKey, value] of Object.entries(source)) {
-    if (Object.keys(target).length >= 32) break;
     const key = rawKey.trim().slice(0, 64);
     if (!key || (!includeReserved && RESERVED_FIELDS.has(key))) continue;
     const metric = asMetric(value);
-    if (metric !== undefined) target[key] = metric;
+    if (metric === undefined) continue;
+
+    const currentPriority = priorities.get(key);
+    if (currentPriority !== undefined) {
+      if (priority >= currentPriority) {
+        target[key] = metric;
+        priorities.set(key, priority);
+      }
+      continue;
+    }
+
+    if (priorities.size >= 32) {
+      const replaceable = priorities.entries().find(([, existingPriority]) => existingPriority < priority);
+      if (!replaceable) continue;
+      delete target[replaceable[0]];
+      priorities.delete(replaceable[0]);
+    }
+    target[key] = metric;
+    priorities.set(key, priority);
   }
 }
 
@@ -36,8 +59,9 @@ export function extractTelemetryMetrics(
   mappedCustom?: Record<string, unknown>,
 ): Prisma.InputJsonObject | undefined {
   const metrics: Record<string, PrimitiveMetric> = {};
-  addMetrics(metrics, payload, false);
-  addMetrics(metrics, payload.metrics, true);
-  addMetrics(metrics, mappedCustom, true);
+  const priorities = new Map<string, number>();
+  addMetrics(metrics, priorities, payload, 0, false);
+  addMetrics(metrics, priorities, payload.metrics, 1, true);
+  addMetrics(metrics, priorities, mappedCustom, 2, true);
   return Object.keys(metrics).length > 0 ? metrics : undefined;
 }

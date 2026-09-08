@@ -32,4 +32,17 @@ describe('custom telemetry extraction', () => {
     });
     expect(metrics).toEqual({ label: 'x'.repeat(160) });
   });
+
+  it('reserves the metric budget for explicit and mapped telemetry', () => {
+    const automatic = Object.fromEntries(
+      Array.from({ length: 32 }, (_, index) => [`automatic_${index}`, index]),
+    );
+    const metrics = extractTelemetryMetrics({
+      ...automatic,
+      metrics: { altitude: 42 },
+    }, { radiation: 0.12 });
+
+    expect(Object.keys(metrics ?? {})).toHaveLength(32);
+    expect(metrics).toMatchObject({ altitude: 42, radiation: 0.12 });
+  });
 });

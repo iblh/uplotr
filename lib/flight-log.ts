@@ -118,6 +118,10 @@ function parseTimestamp(raw: string | undefined, header: string, relativeBaseMs:
   if (!raw) return null;
   const numeric = finiteNumber(raw);
   if (numeric !== null) {
+    // Flight-controller boot clocks can exceed the Unix-seconds threshold.
+    // Headers that explicitly identify a relative unit must win over magnitude heuristics.
+    if (header === 'timeus' || header === 'time_us') return new Date(relativeBaseMs + numeric / 1000);
+    if (header === 'time_ms') return new Date(relativeBaseMs + numeric);
     if (numeric > 1e15) return new Date(numeric / 1000);
     if (numeric > 1e12) return new Date(numeric);
     if (numeric > 1e9) return new Date(numeric * 1000);
@@ -162,10 +166,15 @@ function parseCsv(content: string, format: Exclude<FlightLogFormat, 'AUTO' | 'GP
   };
   const batteryIndex = findColumn(headers, aliases.battery);
   const numericRows = lines.slice(1, MAX_POINTS + 1).map((line) => splitCsvRow(line, delimiter));
-  const relativeValues = timestampIndex >= 0
-    ? numericRows.map((row) => finiteNumber(row[timestampIndex])).filter((value): value is number => value !== null && value < 1e9)
-    : [];
   const relativeHeader = timestampIndex >= 0 ? headers[timestampIndex] : '';
+  const hasExplicitRelativeClock = relativeHeader === 'timeus'
+    || relativeHeader === 'time_us'
+    || relativeHeader === 'time_ms';
+  const relativeValues = timestampIndex >= 0
+    ? numericRows
+        .map((row) => finiteNumber(row[timestampIndex]))
+        .filter((value): value is number => value !== null && (hasExplicitRelativeClock || value < 1e9))
+    : [];
   const lastRelative = relativeValues.at(-1) ?? 0;
   const relativeDurationMs = relativeHeader.includes('us')
     ? lastRelative / 1000

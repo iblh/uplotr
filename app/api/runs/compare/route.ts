@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
       device: { select: { id: true, name: true, externalId: true } },
       positions: {
         orderBy: { ts: 'asc' },
-        take: 10_000,
         select: { ts: true, lat: true, lon: true, battery: true, metrics: true },
       },
     },
