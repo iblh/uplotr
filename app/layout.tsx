@@ -4,6 +4,7 @@ import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css"; // Important for mapbox
 import "maplibre-gl/dist/maplibre-gl.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Analytics } from "@/components/analytics";
 import packageJson from '@/package.json';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -41,6 +42,7 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
