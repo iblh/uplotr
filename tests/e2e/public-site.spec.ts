@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('public landing, docs, demo, and health are available', async ({ page, request }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Get device locations');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Test moving hardware');
   await expect(page.getByRole('link', { name: /try the read-only demo/i })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Docs', exact: true }).first()).not.toHaveAttribute('target', '_blank');
   await expect(page.getByRole('link', { name: 'Demo', exact: true })).not.toHaveAttribute('target', '_blank');
