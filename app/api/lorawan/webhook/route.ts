@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { extractApiToken, verifyWebhookSecret } from '@/lib/webhook-verify';
 import { tryMapPayload } from '@/lib/mapper-service';
 import { clientIdentifier, consumeRateLimit } from '@/lib/rate-limit';
+import { extractTelemetryMetrics } from '@/lib/telemetry';
 import {
   optionalFiniteNumber,
   parseEventTime,
@@ -87,6 +88,10 @@ export async function POST(req: NextRequest) {
     const light = optionalFiniteNumber(lightValue, 'light');
     const rssi = optionalFiniteNumber(rssiValue, 'rssi');
     const snr = optionalFiniteNumber(snrValue, 'snr');
+    const metrics = extractTelemetryMetrics(
+      decoded && typeof decoded === 'object' && !Array.isArray(decoded) ? decoded : {},
+      mapped?.custom,
+    );
 
     const device = await prisma.$transaction(async (tx) => {
       const ensured = await tx.device.upsert({
@@ -123,6 +128,12 @@ export async function POST(req: NextRequest) {
           })
         : ensured;
 
+      const activeRun = await tx.fieldTestRun.findFirst({
+        where: { deviceId: record.id, status: 'ACTIVE' },
+        orderBy: { startedAt: 'desc' },
+        select: { id: true },
+      });
+
       if (coordinates) {
         await tx.position.create({
           data: {
@@ -136,6 +147,8 @@ export async function POST(req: NextRequest) {
             rssi: rssi ?? null,
             snr: snr ?? null,
             source: 'lorawan',
+            metrics,
+            runId: activeRun?.id,
           },
         });
       }

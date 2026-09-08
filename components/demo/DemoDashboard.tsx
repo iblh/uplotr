@@ -15,12 +15,14 @@ import {
   RotateCcw,
   Route,
   ShieldCheck,
+  Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { InfoPanel } from '@/components/InfoPanel';
 import { cn } from '@/lib/utils';
-import { demoDevices, demoPositionsByDevice, getRouteStats } from '@/lib/demo-data';
+import { demoDevices, demoPositionsByDevice } from '@/lib/demo-data';
+import { analyzeRun } from '@/lib/run-analysis';
 
 const MapContainer = dynamic(
   () => import('@/components/map/MapContainer').then((module) => module.MapContainer),
@@ -46,7 +48,8 @@ export function DemoDashboard() {
   const positions = demoPositionsByDevice[deviceId];
   const visiblePositions = positions.slice(0, cursor + 1);
   const currentPosition = positions[cursor] ?? positions.at(-1) ?? null;
-  const stats = React.useMemo(() => getRouteStats(positions), [positions]);
+  const stats = React.useMemo(() => analyzeRun(positions), [positions]);
+  const altitude = stats.metrics.find((metric) => metric.key === 'altitude');
   const routeColor = routeColors[deviceId] ?? '#38bdf8';
 
   React.useEffect(() => {
@@ -83,8 +86,8 @@ export function DemoDashboard() {
         </div>
 
         <div className="px-2">
-          <h1 className="text-xl font-semibold tracking-tight">Interactive fleet demo</h1>
-          <p className="pb-4 pt-1 text-xs leading-5 text-muted-foreground">Switch devices, inspect telemetry, and replay generated routes. Nothing is written to a database.</p>
+          <h1 className="text-xl font-semibold tracking-tight">Interactive field-test demo</h1>
+          <p className="pb-4 pt-1 text-xs leading-5 text-muted-foreground">Inspect a synthetic hardware run, its telemetry, and explainable quality score. Nothing is written to a database.</p>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2 md:grid md:grid-cols-1 md:overflow-visible">
@@ -140,7 +143,15 @@ export function DemoDashboard() {
             </div>
             <div className="rounded-lg border bg-card p-3">
               <dt className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground"><Battery className="h-3 w-3" />Battery used</dt>
-              <dd className="mt-1 text-lg font-semibold">{stats.batteryUsed} <span className="text-xs font-normal text-muted-foreground">pts</span></dd>
+              <dd className="mt-1 text-lg font-semibold">{stats.batteryUsed ?? '—'} <span className="text-xs font-normal text-muted-foreground">pts</span></dd>
+            </div>
+            <div className="rounded-lg border bg-card p-3">
+              <dt className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground"><ShieldCheck className="h-3 w-3" />Data quality</dt>
+              <dd className="mt-1 text-lg font-semibold">{stats.qualityScore} <span className="text-xs font-normal text-muted-foreground">/ 100</span></dd>
+            </div>
+            <div className="rounded-lg border bg-card p-3">
+              <dt className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground"><Activity className="h-3 w-3" />Altitude range</dt>
+              <dd className="mt-1 text-lg font-semibold">{altitude ? Math.round(altitude.max - altitude.min) : '—'} <span className="text-xs font-normal text-muted-foreground">m</span></dd>
             </div>
           </dl>
         </div>

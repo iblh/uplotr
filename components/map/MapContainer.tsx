@@ -40,6 +40,7 @@ interface MapContainerProps {
   interactive?: boolean;
   showControls?: boolean;
   routeColor?: string;
+  routeMetric?: string | null;
   pointStride?: number;
   className?: string;
 }
@@ -54,6 +55,7 @@ export function MapContainer({
   interactive = true,
   showControls = true,
   routeColor = '#3b82f6',
+  routeMetric = null,
   pointStride = 1,
   className,
 }: MapContainerProps) {
@@ -89,9 +91,38 @@ export function MapContainer({
     ? { mapboxAccessToken: mapboxToken ?? undefined }
     : {};
 
-  // Memoize the GeoJSON data
+  const metricValue = React.useCallback((position: Position, key: string): number | null => {
+    const builtIn = position[key as keyof Position];
+    if (typeof builtIn === 'number' && Number.isFinite(builtIn)) return builtIn;
+    if (!position.metrics || typeof position.metrics !== 'object' || Array.isArray(position.metrics)) return null;
+    const value = (position.metrics as Record<string, unknown>)[key];
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }, []);
+
+  // Segments carry their telemetry value so the route can expose changes at a glance.
   const lineData = React.useMemo(() => {
     if (!positions || positions.length === 0) return null;
+
+    if (routeMetric && positions.length > 1) {
+      return {
+        type: 'FeatureCollection' as const,
+        features: positions.slice(1).map((position, index) => {
+          const previous = positions[index];
+          const left = metricValue(previous, routeMetric);
+          const right = metricValue(position, routeMetric);
+          return {
+            type: 'Feature' as const,
+            properties: {
+              value: left !== null && right !== null ? (left + right) / 2 : left ?? right,
+            },
+            geometry: {
+              type: 'LineString' as const,
+              coordinates: [[previous.lon, previous.lat], [position.lon, position.lat]],
+            },
+          };
+        }),
+      };
+    }
 
     return {
       type: 'Feature' as const,
@@ -101,7 +132,29 @@ export function MapContainer({
         coordinates: positions.map(p => [p.lon, p.lat])
       }
     };
-  }, [positions]);
+  }, [metricValue, positions, routeMetric]);
+
+  const metricRange = React.useMemo(() => {
+    if (!routeMetric) return null;
+    const values = positions
+      .map((position) => metricValue(position, routeMetric))
+      .filter((value): value is number => value !== null);
+    if (values.length === 0) return null;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return { min, max: min === max ? min + 1 : max };
+  }, [metricValue, positions, routeMetric]);
+
+  const telemetryColor = React.useMemo(() => {
+    if (!metricRange) return routeColor;
+    const midpoint = (metricRange.min + metricRange.max) / 2;
+    return [
+      'interpolate', ['linear'], ['coalesce', ['get', 'value'], metricRange.min],
+      metricRange.min, '#38bdf8',
+      midpoint, '#facc15',
+      metricRange.max, '#f43f5e',
+    ];
+  }, [metricRange, routeColor]);
 
   const pointsData = React.useMemo(() => {
     if (!positions || positions.length === 0) return null;
@@ -248,7 +301,7 @@ export function MapContainer({
                 "line-cap": "round"
               }}
               paint={{
-                "line-color": routeColor,
+                "line-color": telemetryColor,
                 "line-width": 10,
                 "line-opacity": 0.2,
                 "line-blur": 4,
@@ -262,7 +315,7 @@ export function MapContainer({
                 "line-cap": "round"
               }}
               paint={{
-                "line-color": routeColor,
+                "line-color": telemetryColor,
                 "line-width": 4,
                 "line-opacity": 0.95
               }}

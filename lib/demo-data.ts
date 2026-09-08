@@ -183,6 +183,11 @@ function interpolateRoute(spec: DemoRouteSpec): Position[] {
       rssi: spec.rssiBase - (index % 8),
       snr: spec.snrBase - (index % 6) * 0.35,
       source: 'demo',
+      metrics: {
+        altitude: Math.round(18 + Math.sin(index / 5) * 7),
+        packet_loss: Number((Math.max(0, Math.sin(index / 11) * 4)).toFixed(1)),
+      },
+      runId: null,
     };
   });
 }

@@ -27,6 +27,7 @@ import { PayloadMapperManager } from './PayloadMapperManager';
 import { DataRetentionManager } from './DataRetentionManager';
 import { MapProviderManager } from './MapProviderManager';
 import { cn } from '@/lib/utils';
+import packageJson from '@/package.json';
 
 export function SettingsDialog() {
     const [open, setOpen] = React.useState(false);
@@ -97,7 +98,7 @@ export function SettingsDialog() {
                         </TabsList>
 
                         <div className="mt-auto rounded-md border border-border/40 bg-background/75 px-3 py-2 hidden sm:block shadow-sm">
-                            <p className="text-xs text-muted-foreground">Instance version 0.1.0</p>
+                            <p className="text-xs text-muted-foreground">Instance version {packageJson.version}</p>
                         </div>
                     </aside>
 

@@ -27,6 +27,12 @@ export function InfoPanel({ position }: InfoPanelProps) {
     );
   }
 
+  const customMetrics = position.metrics && typeof position.metrics === 'object' && !Array.isArray(position.metrics)
+    ? Object.entries(position.metrics).filter((entry): entry is [string, string | number | boolean] => (
+        ['string', 'number', 'boolean'].includes(typeof entry[1])
+      )).slice(0, 4)
+    : [];
+
   return (
     <>
       {/* MOBILE: Vertical Stack (Bottom-Right) */}
@@ -68,6 +74,12 @@ export function InfoPanel({ position }: InfoPanelProps) {
                </span>
              </div>
            )}
+           {customMetrics.slice(0, 2).map(([key, value]) => (
+             <div key={key} className="flex items-center justify-between gap-2 text-xs font-mono">
+               <span className="max-w-[48px] truncate text-[10px] uppercase text-muted-foreground">{key}</span>
+               <span className="truncate text-sky-500">{typeof value === 'number' ? Number(value.toFixed(2)) : String(value)}</span>
+             </div>
+           ))}
         </div>
       </div>
 
@@ -132,6 +144,20 @@ export function InfoPanel({ position }: InfoPanelProps) {
               </div>
            </div>
         </div>
+
+        {customMetrics.length > 0 && (
+          <div className="border-t border-border pt-3">
+            <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Custom telemetry</div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {customMetrics.map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between gap-2 text-[11px]">
+                  <span className="truncate text-muted-foreground">{key}</span>
+                  <span className="truncate font-mono font-medium">{typeof value === 'number' ? Number(value.toFixed(2)) : String(value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Footer: Location */}
         <button
