@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { extractApiToken, verifyWebhookSecret } from '@/lib/webhook-verify';
 import { tryMapPayload } from '@/lib/mapper-service';
 import { clientIdentifier, consumeRateLimit } from '@/lib/rate-limit';
+import { extractTelemetryMetrics } from '@/lib/telemetry';
 import {
   optionalFiniteNumber,
   parseEventTime,
@@ -23,6 +24,7 @@ type GenericPayload = Record<string, unknown> & {
   type?: unknown;
   temp?: unknown;
   light?: unknown;
+  metrics?: unknown;
 };
 
 export async function POST(req: NextRequest) {
@@ -69,6 +71,7 @@ export async function POST(req: NextRequest) {
     const battery = validateBattery(batteryValue);
     const temp = optionalFiniteNumber(tempValue, 'temp');
     const light = optionalFiniteNumber(lightValue, 'light');
+    const metrics = extractTelemetryMetrics(body, mapped?.custom);
 
     const device = await prisma.$transaction(async (tx) => {
       const ensured = await tx.device.upsert({
@@ -100,6 +103,12 @@ export async function POST(req: NextRequest) {
           })
         : ensured;
 
+      const activeRun = await tx.fieldTestRun.findFirst({
+        where: { deviceId: record.id, status: 'ACTIVE' },
+        orderBy: { startedAt: 'desc' },
+        select: { id: true },
+      });
+
       await tx.position.create({
         data: {
           deviceId: record.id,
@@ -110,6 +119,8 @@ export async function POST(req: NextRequest) {
           temp: temp ?? null,
           light: light ?? null,
           source: 'http',
+          metrics,
+          runId: activeRun?.id,
         },
       });
 

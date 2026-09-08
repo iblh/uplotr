@@ -1,10 +1,10 @@
 # uplotr
 
-**Open-source location tracking for IoT developers and makers.** Send coordinates over REST or a LoRaWAN webhook, then inspect live device state and replay movement history on a fast MapLibre map.
+**Open-source field testing for moving hardware.** Capture GPS and arbitrary sensor telemetry, diagnose data quality, and compare hardware or firmware test runs on a fast MapLibre map.
 
 [Website](https://uplotr.com) · [Live synthetic demo](https://uplotr.com/demo) · [Documentation](https://uplotr.com/docs) · [Discussions](https://github.com/iblh/uplotr/discussions)
 
-> **Public Beta — v0.2.0-beta.1.** uplotr is suitable for evaluation, maker projects, and self-hosted deployments. Back up location data before upgrades. The official instance does not offer public registration or accept visitor location uploads.
+> **Public Beta — v0.3.1-beta.1.** uplotr is suitable for evaluation, maker field tests, and self-hosted deployments. Back up location data before upgrades. The official instance does not offer public registration or accept visitor location uploads.
 
 ## What works today
 
@@ -12,12 +12,18 @@
 - LoRaWAN webhooks for The Things Network, Helium, and ChirpStack payloads
 - Live device state, online/offline status, battery, RSSI, and SNR
 - Historical paths, point view, time filtering, and trajectory replay
+- Structured field-test runs with hardware, firmware, goals, and notes
+- Arbitrary flat telemetry metrics stored beside every position
+- Explainable reporting-gap, GPS-jump, and timestamp diagnostics
+- Baseline-to-candidate run comparison reports
+- DIY drone flight-log import from GPX and generic, PX4, ArduPilot, or Betaflight CSV exports
+- Run-scoped route replay, telemetry-colored paths, and flight-specific altitude, speed, GPS, and home-distance summaries
 - MapLibre + OpenFreeMap by default; Mapbox is optional
 - Single-owner private console with administrator-managed users and keys
 - PostgreSQL persistence, retention cleanup, Docker Compose, and Vercel deployment
 - Public, deterministic, read-only demo that never touches the production database
 
-Not included in this Beta: open registration, multi-tenant SaaS, alerts, native MQTT/Kafka adapters, or a commercial SLA. These are roadmap items, not advertised features.
+Not included in this Beta: open registration, multi-tenant SaaS, alerts, native MQTT/Kafka adapters, public report sharing, or a commercial SLA. These are roadmap items, not advertised features.
 
 ## Five-minute Docker start
 
@@ -35,7 +41,7 @@ Open `http://localhost:3000/login`, create the owner account, then create an API
 curl -X POST http://localhost:3000/api/v1/ingest \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"device_id":"tracker-01","lat":37.7749,"lon":-122.4194,"battery":98}'
+  -d '{"device_id":"tracker-01","lat":37.7749,"lon":-122.4194,"battery":98,"metrics":{"altitude":32,"voltage":4.08}}'
 ```
 
 See the [Quick Start](docs/QUICK_START.md), [Deployment Guide](docs/DEPLOYMENT.md), and [API Reference](docs/API_REFERENCE.md) for complete instructions.
@@ -85,11 +91,11 @@ Please report suspected vulnerabilities privately as described in [SECURITY.md](
 
 ## Roadmap
 
-1. Offline and low-battery notifications
-2. Native MQTT adapter plus webhook retry and idempotency
-3. Richer read-only/admin roles
-4. Geofences, exports, and bulk device management
-5. Multi-tenancy and optional open-registration SaaS
+1. Raw PX4 ULog, ArduPilot DataFlash, Betaflight Blackbox, and licensed DJI flight-record adapters
+2. Read-only MCP tools for devices, runs, reports, and comparisons
+3. Native MQTT/Meshtastic worker plus webhook retry and idempotency
+4. Geofences, offline/low-battery rules, and outgoing automation webhooks
+5. Private report sharing plus GPX, GeoJSON, and CSV export
 
 ## Community and license
 

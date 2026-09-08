@@ -11,6 +11,7 @@ import { InfoPanel } from '@/components/InfoPanel';
 import { EmptyState } from '@/components/EmptyState';
 import { ModeToggle } from '@/components/mode-toggle';
 import { SettingsDialog } from '@/components/settings/SettingsDialog';
+import { FieldTestManager } from '@/components/field-tests/FieldTestManager';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import {
     Check,
     ChevronDown,
     CalendarRange,
+    X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow, subHours } from 'date-fns';
@@ -68,6 +70,8 @@ export default function Dashboard() {
     } | null>(null);
     const [customRangeError, setCustomRangeError] = React.useState<string | null>(null);
     const [mapMode, setMapMode] = React.useState<'path' | 'points' | 'both'>('both');
+    const [selectedRun, setSelectedRun] = React.useState<{ id: string; name: string } | null>(null);
+    const [routeMetric, setRouteMetric] = React.useState('');
 
     // Playback State
     const [playbackIndex, setPlaybackIndex] = React.useState<number>(-1); // -1 = Live/Latest
@@ -89,7 +93,10 @@ export default function Dashboard() {
         if (!selectedDeviceId) return null;
         const params = new URLSearchParams({ deviceId: selectedDeviceId });
 
-        if (filterMode === 'custom' && appliedCustomRange) {
+        if (selectedRun) {
+            params.set('runId', selectedRun.id);
+            params.set('limit', '10000');
+        } else if (filterMode === 'custom' && appliedCustomRange) {
             params.set('from', appliedCustomRange.from);
             params.set('to', appliedCustomRange.to);
         } else {
@@ -97,7 +104,7 @@ export default function Dashboard() {
         }
 
         return `/api/positions?${params.toString()}`;
-    }, [selectedDeviceId, filterMode, appliedCustomRange, timeRange]);
+    }, [selectedDeviceId, selectedRun, filterMode, appliedCustomRange, timeRange]);
 
     const { data: positions } = useSWR<Position[]>(positionsEndpoint, fetcher, {
         refreshInterval: isPlaying || filterMode === 'custom' ? 0 : 10000, // Stop polling while replaying or when viewing a fixed custom window
@@ -116,9 +123,15 @@ export default function Dashboard() {
         setIsPlaying(false);
     }, [selectedDeviceId, positionsEndpoint, positions?.length]);
 
+    React.useEffect(() => {
+        setSelectedRun(null);
+        setRouteMetric('');
+    }, [selectedDeviceId]);
+
     const handleSelectPresetRange = React.useCallback((range: string) => {
         setTimeRange(range);
         setFilterMode('preset');
+        setSelectedRun(null);
         setIsCustomRangeOpen(false);
         setCustomRangeError(null);
     }, []);
@@ -142,12 +155,14 @@ export default function Dashboard() {
 
         setAppliedCustomRange({ from: from.toISOString(), to: to.toISOString() });
         setFilterMode('custom');
+        setSelectedRun(null);
         setIsCustomRangeOpen(false);
         setCustomRangeError(null);
     }, [customFromInput, customToInput]);
 
-    const activeRangeLabel =
-        filterMode === 'custom' && appliedCustomRange
+    const activeRangeLabel = selectedRun
+        ? `Run · ${selectedRun.name}`
+        : filterMode === 'custom' && appliedCustomRange
             ? `${format(new Date(appliedCustomRange.from), 'MMM d HH:mm')} - ${format(new Date(appliedCustomRange.to), 'MMM d HH:mm')}`
             : RANGES.find((range) => range.value === timeRange)?.label || timeRange;
 
@@ -182,7 +197,37 @@ export default function Dashboard() {
         | undefined;
 
     // Derived State
-    const validPositions = Array.isArray(positions) ? positions : [];
+    const validPositions = React.useMemo(
+        () => Array.isArray(positions) ? positions : [],
+        [positions],
+    );
+    const routeMetrics = React.useMemo(() => {
+        const keys = new Set<string>();
+        for (const position of validPositions) {
+            for (const key of ['battery', 'temp', 'light', 'rssi', 'snr'] as const) {
+                if (typeof position[key] === 'number') keys.add(key);
+            }
+            if (position.metrics && typeof position.metrics === 'object' && !Array.isArray(position.metrics)) {
+                for (const [key, value] of Object.entries(position.metrics)) {
+                    if (typeof value === 'number' && Number.isFinite(value)) keys.add(key);
+                }
+            }
+        }
+        return [...keys].sort();
+    }, [validPositions]);
+    const routeMetricRange = React.useMemo(() => {
+        if (!routeMetric) return null;
+        const values: number[] = [];
+        for (const position of validPositions) {
+            const builtIn = position[routeMetric as keyof Position];
+            if (typeof builtIn === 'number' && Number.isFinite(builtIn)) values.push(builtIn);
+            else if (position.metrics && typeof position.metrics === 'object' && !Array.isArray(position.metrics)) {
+                const value = (position.metrics as Record<string, unknown>)[routeMetric];
+                if (typeof value === 'number' && Number.isFinite(value)) values.push(value);
+            }
+        }
+        return values.length > 0 ? { min: Math.min(...values), max: Math.max(...values) } : null;
+    }, [routeMetric, validPositions]);
     const currentDisplayIndex = playbackIndex === -1 ? validPositions.length - 1 : playbackIndex;
     const currentPosition = validPositions[currentDisplayIndex] || null;
 
@@ -316,17 +361,30 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto bg-muted/5">
-                    <DeviceList
-                        devices={devices || []}
-                        selectedId={selectedDeviceId}
-                        onSelect={(id) => {
-                            setSelectedDeviceId(id);
-                            setIsDeviceDrawerOpen(false);
-                        }}
-                        isLoading={devicesLoading}
-                        onUpdate={handleUpdate}
-                        canManage={canManage}
-                    />
+                    <div className="h-[48dvh] min-h-[300px]">
+                        <DeviceList
+                            devices={devices || []}
+                            selectedId={selectedDeviceId}
+                            onSelect={(id) => {
+                                setSelectedDeviceId(id);
+                                setIsDeviceDrawerOpen(false);
+                            }}
+                            isLoading={devicesLoading}
+                            onUpdate={handleUpdate}
+                            canManage={canManage}
+                        />
+                    </div>
+                    <div className="px-4 pb-4">
+                        <FieldTestManager
+                            deviceId={selectedDeviceId}
+                            canManage={canManage}
+                            activeViewRunId={selectedRun?.id ?? null}
+                            onViewRun={(run) => {
+                                setSelectedRun(run);
+                                setIsDeviceDrawerOpen(false);
+                            }}
+                        />
+                    </div>
                 </div>
 
                 <div className="p-4 border-t bg-background/80 backdrop-blur-xl">
@@ -388,6 +446,15 @@ export default function Dashboard() {
                     </div>
                 </div>
 
+                <div className="px-3 pb-3">
+                    <FieldTestManager
+                        deviceId={selectedDeviceId}
+                        canManage={canManage}
+                        activeViewRunId={selectedRun?.id ?? null}
+                        onViewRun={setSelectedRun}
+                    />
+                </div>
+
                 {/* Desktop Profile Footer */}
                 <div className="p-3 pt-0">
                     <div className="rounded-lg bg-background/55 px-3 py-2.5 flex items-center justify-between gap-2">
@@ -436,6 +503,7 @@ export default function Dashboard() {
                         positions={validPositions}
                         currentPosition={currentPosition}
                         displayMode={mapMode}
+                        routeMetric={routeMetric || null}
                     />
 
                     {/* Top Overlay: Time Range (Adjusted top position for mobile to clear the new header) */}
@@ -490,7 +558,36 @@ export default function Dashboard() {
                                     </button>
                                 ))}
                             </div>
+                            {routeMetrics.length > 0 && (
+                                <select
+                                    aria-label="Color route by telemetry"
+                                    value={routeMetric}
+                                    onChange={(event) => setRouteMetric(event.target.value)}
+                                    className="h-8 max-w-[150px] rounded-md border border-border/40 bg-background/80 px-2 text-[10px] font-semibold shadow-sm backdrop-blur-xl pointer-events-auto md:text-xs"
+                                >
+                                    <option value="">Solid route</option>
+                                    {routeMetrics.map((metric) => <option key={metric} value={metric}>{metric}</option>)}
+                                </select>
+                            )}
                         </div>
+
+                        {selectedRun && (
+                            <button
+                                type="button"
+                                onClick={() => setSelectedRun(null)}
+                                className="pointer-events-auto inline-flex items-center gap-2 rounded-md border border-primary/25 bg-primary/10 px-2.5 py-1.5 text-[10px] font-semibold text-primary shadow-sm"
+                            >
+                                Flight/run route: {selectedRun.name}<X className="h-3 w-3" />
+                            </button>
+                        )}
+                        {routeMetric && routeMetricRange && (
+                            <div className="pointer-events-auto flex items-center gap-2 rounded-md border border-border/40 bg-background/80 px-2.5 py-1.5 text-[10px] font-mono shadow-sm backdrop-blur-xl">
+                                <span>{routeMetricRange.min.toFixed(1)}</span>
+                                <span className="h-1.5 w-24 rounded-full bg-gradient-to-r from-sky-400 via-yellow-400 to-rose-500" aria-hidden="true" />
+                                <span>{routeMetricRange.max.toFixed(1)}</span>
+                                <span className="font-sans text-muted-foreground">{routeMetric}</span>
+                            </div>
+                        )}
 
                         {isCustomRangeOpen && (
                             <div className="w-[92vw] max-w-[420px] md:w-[420px] rounded-md border border-border/40 bg-background/85 backdrop-blur-xl shadow-lg p-2.5 pointer-events-auto">

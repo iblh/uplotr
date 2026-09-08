@@ -35,11 +35,13 @@ Production defaults to `AUTH_MODE=REQUIRED`.
   "type": "generic",
   "temp": 22.5,
   "light": 100,
-  "payload": { "firmware": "1.4.0" }
+  "metrics": { "altitude": 32, "voltage": 4.08, "gps_fix": true }
 }
 ```
 
 `device_id`, `lat`, and `lon` are required unless an assigned payload mapper supplies coordinates. `timestamp` accepts ISO 8601, Unix milliseconds, or Unix seconds. Successful requests return `201`:
+
+Primitive fields not reserved by the standard schema are also retained as custom telemetry. For the clearest contract, put maker-defined numeric, string, or boolean values in the flat `metrics` object. Up to 32 metrics are retained per position.
 
 ```json
 { "success": true, "deviceId": "database-uuid", "requestId": "request-uuid" }
@@ -76,9 +78,17 @@ Authenticated users may read:
 
 - `GET /api/devices`
 - `GET /api/positions?deviceId=...&range=24h`
+- `GET /api/positions?deviceId=...&runId=...&limit=10000`
 - `GET /api/events?deviceId=...`
+- `GET /api/runs?deviceId=...`
+- `GET /api/runs/:id`
+- `GET /api/runs/compare?left=...&right=...`
 
-Administrator access is required for users, API keys, system settings, mapping templates, device updates/deletion, manual retention cleanup, and mapper assignment.
+Administrators may start a field test with `POST /api/runs` and complete or edit one with `PATCH /api/runs/:id`. Only one run may be active per device. Positions received while it is active are attached automatically.
+
+`POST /api/runs/import` accepts administrator-authenticated `multipart/form-data` with `deviceId`, `name`, `file`, and an optional `format` (`AUTO`, `GENERIC_CSV`, `PX4_CSV`, `ARDUPILOT_CSV`, `BETAFLIGHT_CSV`, or `GPX`). Optional metadata fields are `hardwareVersion`, `firmwareVersion`, and `notes`. Files are limited to 5 MiB and 10,000 valid points. Imported logs become completed `FLIGHT` runs.
+
+Administrator access is also required for users, API keys, system settings, mapping templates, device updates/deletion, manual retention cleanup, and mapper assignment.
 
 ## Health and cleanup
 

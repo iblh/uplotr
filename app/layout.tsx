@@ -10,13 +10,13 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://uplotr.com'),
-  title: { default: 'uplotr — Open-source tracking console', template: '%s · uplotr' },
-  description: "A focused, self-hosted tracking console for REST and LoRaWAN devices, with map visualization and trajectory replay.",
+  title: { default: 'uplotr — Field testing for moving hardware', template: '%s · uplotr' },
+  description: "A self-hosted field-test workbench for GPS, LoRaWAN, DIY drones, and moving sensor projects with telemetry diagnostics and run comparison.",
   keywords: ["uplotr", "LoRaWAN", "Tracker", "Map", "SenseCAP", "Helium", "TTN", "GPS", "IoT"],
   // icons field removed to let Next.js automatically handle app/icon.svg
   openGraph: {
-    title: "uplotr — Open-source tracking console",
-    description: "Get REST and LoRaWAN device locations onto a map in minutes.",
+    title: "uplotr — Field testing for moving hardware",
+    description: "Capture, diagnose, and compare GPS and sensor field tests without building a tracking backend.",
     type: "website",
     url: 'https://uplotr.com',
   },

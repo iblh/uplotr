@@ -119,4 +119,31 @@ integrationSuite('Postgres migration compatibility', () => {
     expect(device.lastSeen.toISOString()).toBe(later);
     expect(device.lastLat).toBe(37.4);
   });
+
+  it('attaches arbitrary telemetry to the active field test', async () => {
+    const externalId = `integration-${suffix}-field-test`;
+    const device = await prisma.device.create({
+      data: { externalId, name: 'Field test node', tags: [], lastSeen: new Date() },
+    });
+    const run = await prisma.fieldTestRun.create({
+      data: { deviceId: device.id, name: 'Antenna baseline', hardwareVersion: 'PCB v2' },
+    });
+
+    const response = await ingest(new NextRequest('http://localhost/api/v1/ingest', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${legacyKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        device_id: externalId,
+        lat: 37.5,
+        lon: -122.5,
+        voltage: 4.08,
+        metrics: { altitude: 32, gps_fix: true },
+      }),
+    }));
+
+    expect(response.status).toBe(201);
+    const position = await prisma.position.findFirstOrThrow({ where: { deviceId: device.id } });
+    expect(position.runId).toBe(run.id);
+    expect(position.metrics).toMatchObject({ voltage: 4.08, altitude: 32, gps_fix: true });
+  });
 });

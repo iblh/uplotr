@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { isAuthResponse, requireAdmin } from '@/lib/api-auth';
 import { discoverPaths } from '@/lib/mapper-service';
+import { extractTelemetryMetrics } from '@/lib/telemetry';
 
 export async function GET(
   req: NextRequest,
@@ -129,7 +130,11 @@ async function handleReprocessStream(deviceId: string) {
                 temp: mapped.temp,
                 light: mapped.light,
                 rssi: mapped.rssi,
-                snr: mapped.snr
+                snr: mapped.snr,
+                metrics: extractTelemetryMetrics(
+                  event.payload as Record<string, unknown>,
+                  mapped.custom,
+                )
               }
             });
           }

@@ -6,36 +6,38 @@ import {
   CheckCircle2,
   CircleDashed,
   Code2,
-  Database,
   ExternalLink,
   Github,
-  Map,
   PlayCircle,
   Radio,
-  Route,
   Server,
   ShieldCheck,
+  FlaskConical,
+  GitCompareArrows,
+  Activity,
+  Plane,
 } from 'lucide-react';
 import packageJson from '@/package.json';
 import { LandingMapPreview } from '@/components/landing/LandingMapPreview';
 
 const features = [
-  { icon: Radio, title: 'REST and LoRaWAN ingest', body: 'Connect generic trackers, TTN, Helium, or ChirpStack with a consistent location schema.' },
-  { icon: Map, title: 'Fast map console', body: 'Inspect live device health, latest position, battery, signal, groups, and tags.' },
-  { icon: Route, title: 'Trajectory replay', body: 'Filter a time window, render paths or point clouds, and replay movement history.' },
-  { icon: Code2, title: 'Payload mapping', body: 'Map unfamiliar JSON payloads without rebuilding your integration pipeline.' },
-  { icon: Box, title: 'Self-hosted by default', body: 'Run the same application with Docker Compose and PostgreSQL on infrastructure you control.' },
-  { icon: ShieldCheck, title: 'Private data plane', body: 'API-key protected ingest, owner-controlled retention, and no product analytics by default.' },
+  { icon: FlaskConical, title: 'Structured field-test runs', body: 'Record hardware, firmware, goals, notes, and every position as one reproducible test.' },
+  { icon: Activity, title: 'Arbitrary sensor telemetry', body: 'Keep maker-defined metrics alongside location data and inspect them at every replay point.' },
+  { icon: Plane, title: 'DIY drone flight analysis', body: 'Import flight-controller CSV or GPX logs, replay one flight, and color its route by altitude, speed, signal, or power.' },
+  { icon: ShieldCheck, title: 'Data-quality diagnostics', body: 'Detect reporting gaps, suspicious GPS jumps, and timestamp problems with explainable rules.' },
+  { icon: GitCompareArrows, title: 'Run-to-run comparison', body: 'Use a baseline and candidate run to measure changes in quality, distance, speed, and battery use.' },
+  { icon: Code2, title: 'Payload mapping and replay', body: 'Map unfamiliar JSON payloads, preserve raw events, and reprocess history after a mapping change.' },
+  { icon: Box, title: 'Self-hosted by default', body: 'Run the workbench with Docker Compose and PostgreSQL, with no product analytics by default.' },
 ];
 
 const workflow = [
-  { step: '01', icon: Radio, title: 'Send a position', body: 'POST a normalized location or forward a LoRaWAN webhook from your existing network server.' },
-  { step: '02', icon: Database, title: 'Normalize and retain', body: 'Map payload fields once, store them in PostgreSQL, and set a retention window you control.' },
-  { step: '03', icon: Map, title: 'Explore the route', body: 'Open the console to inspect live state, compare telemetry, filter history, and replay movement.' },
+  { step: '01', icon: Radio, title: 'Capture a field test', body: 'Name the hardware and firmware under test, then stream GPS and sensor data over REST or LoRaWAN.' },
+  { step: '02', icon: ShieldCheck, title: 'Diagnose the run', body: 'Replay movement, inspect custom telemetry, and surface gaps, timestamp faults, and possible GPS jumps.' },
+  { step: '03', icon: GitCompareArrows, title: 'Compare the change', body: 'Put a candidate run beside its baseline and see whether the hardware or firmware change helped.' },
 ];
 
-const availableNow = ['REST ingest API', 'TTN, Helium, and ChirpStack webhooks', 'Map and point-cloud views', 'Trajectory replay', 'Docker Compose self-hosting'];
-const roadmap = ['Offline and low-battery alerts', 'Native MQTT adapter', 'Geofences and data export', 'Multi-tenant hosted SaaS'];
+const availableNow = ['Field-test runs and notes', 'Drone CSV and GPX import', 'Telemetry-colored routes', 'Data-quality diagnostics', 'Run comparison reports', 'REST and LoRaWAN ingest'];
+const roadmap = ['Raw flight-controller log adapters', 'Read-only MCP tools', 'Native MQTT and Meshtastic worker', 'Geofences and automation webhooks', 'Private report sharing and export'];
 
 export default function HomePage() {
   return (
@@ -62,12 +64,12 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(14,165,233,0.16),transparent_42%)]" />
         <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-20 lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:py-28">
           <div>
-            <p className="mb-5 font-mono text-xs uppercase tracking-[0.24em] text-sky-300">Open-source tracking console</p>
+            <p className="mb-5 font-mono text-xs uppercase tracking-[0.24em] text-sky-300">Open-source field-test workbench</p>
             <h1 className="max-w-3xl text-5xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">
-              Get device locations onto a map in minutes.
+              Test moving hardware without building a tracking backend.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-400">
-              uplotr turns REST and LoRaWAN payloads into a focused map, replay, and device-health workflow—without the weight of an enterprise IoT platform.
+              Capture GPS and sensor telemetry, diagnose data quality, and compare field runs for ESP32, LoRaWAN, DIY drones, and custom tracker projects.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/demo" className="inline-flex items-center gap-2 rounded-md bg-sky-400 px-5 py-3 font-semibold text-slate-950 transition-colors hover:bg-sky-300">
@@ -90,8 +92,8 @@ export default function HomePage() {
         </div>
 
         <div className="relative mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/10 px-5 py-5 text-xs text-zinc-500">
-          <span className="font-mono uppercase tracking-[0.18em] text-zinc-600">Works with</span>
-          {['Generic REST', 'The Things Stack', 'Helium', 'ChirpStack', 'PostgreSQL'].map((name) => (
+          <span className="font-mono uppercase tracking-[0.18em] text-zinc-600">Built for</span>
+          {['ESP32 and Arduino', 'Generic REST', 'The Things Stack', 'Helium', 'ChirpStack'].map((name) => (
             <span key={name} className="text-zinc-400">{name}</span>
           ))}
         </div>
@@ -99,9 +101,9 @@ export default function HomePage() {
 
       <section className="mx-auto max-w-6xl px-5 py-20">
         <div className="max-w-2xl">
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-sky-300">From payload to playback</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight">A short path from device to answer.</h2>
-          <p className="mt-4 leading-7 text-zinc-400">Keep your current trackers and network server. uplotr handles the focused layer between location payloads and an understandable route.</p>
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-sky-300">From field run to evidence</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight">Prove whether the change worked.</h2>
+          <p className="mt-4 leading-7 text-zinc-400">Keep building the hardware. uplotr handles capture, mapping, quality checks, and repeatable comparisons.</p>
         </div>
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
           {workflow.map(({ step, icon: Icon, title, body }) => (
@@ -120,9 +122,9 @@ export default function HomePage() {
       <section className="border-y border-white/10 bg-white/[0.02]">
         <div className="mx-auto max-w-6xl px-5 py-20">
           <div className="max-w-2xl">
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-sky-300">A deliberately smaller platform</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight">Everything needed for time-to-map.</h2>
-            <p className="mt-4 text-zinc-400">Focused primitives for teams that need useful location visibility, not another all-purpose IoT suite.</p>
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-sky-300">A workbench, not a fleet suite</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight">Built around the way makers test.</h2>
+            <p className="mt-4 text-zinc-400">Reproducible runs and explainable diagnostics for moving hardware, without enterprise IoT platform weight.</p>
           </div>
           <div className="mt-10 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 md:grid-cols-2 lg:grid-cols-3">
             {features.map(({ icon: Icon, title, body }) => (
@@ -139,8 +141,8 @@ export default function HomePage() {
       <section className="mx-auto grid max-w-6xl gap-8 px-5 py-20 lg:grid-cols-[1.1fr_.9fr]">
         <div className="rounded-2xl border border-white/10 bg-[linear-gradient(135deg,rgba(14,165,233,.1),rgba(255,255,255,.02))] p-8 sm:p-10">
           <Server className="h-6 w-6 text-sky-300" />
-          <h2 className="mt-6 text-3xl font-semibold tracking-tight">Your deployment. Your database. Your location history.</h2>
-          <p className="mt-4 max-w-xl leading-7 text-zinc-400">Run uplotr on your own infrastructure, choose how long data stays, and keep analytics disabled by default. The public demo is synthetic and cannot write to the official instance.</p>
+          <h2 className="mt-6 text-3xl font-semibold tracking-tight">Your tests. Your raw payloads. Your database.</h2>
+          <p className="mt-4 max-w-xl leading-7 text-zinc-400">Run uplotr on your own infrastructure, retain the evidence you need, and keep sensitive locations out of someone else&apos;s cloud.</p>
           <Link href="/docs/deployment" className="mt-7 inline-flex items-center gap-2 font-medium text-sky-300 hover:text-sky-200">
             Read the self-hosting guide <ArrowRight className="h-4 w-4" />
           </Link>
@@ -176,8 +178,8 @@ docker compose -f docker-compose.prod.yml up -d`}</code></pre>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-20 text-center">
-        <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">See the complete workflow before you deploy.</h2>
-        <p className="mx-auto mt-4 max-w-2xl text-zinc-400">Explore a richer synthetic fleet, then use the documentation to connect your first real device.</p>
+        <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Inspect a complete field run before you deploy.</h2>
+        <p className="mx-auto mt-4 max-w-2xl text-zinc-400">Replay synthetic GPS and telemetry, then connect your first real build.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/demo" className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 font-semibold text-black hover:bg-zinc-200"><PlayCircle className="h-4 w-4" />Open demo</Link>
           <a href="https://github.com/iblh/uplotr" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md border border-white/15 px-5 py-3 font-semibold hover:bg-white/5"><Github className="h-4 w-4" />View source <ExternalLink className="h-3 w-3" /></a>
@@ -185,7 +187,7 @@ docker compose -f docker-compose.prod.yml up -d`}</code></pre>
       </section>
 
       <footer className="mx-auto flex max-w-6xl flex-col justify-between gap-4 border-t border-white/10 px-5 py-10 text-sm text-zinc-500 sm:flex-row">
-        <span>uplotr · Open-source tracking console</span>
+        <span>uplotr · Field testing for moving hardware</span>
         <div className="flex gap-5">
           <Link href="/docs" className="hover:text-zinc-300">Docs</Link>
           <Link href="/status" className="hover:text-zinc-300">Status</Link>

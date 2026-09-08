@@ -15,15 +15,22 @@ export async function GET(req: NextRequest) {
     const fromParam = searchParams.get('from');
     const toParam = searchParams.get('to');
     const limitParam = searchParams.get('limit');
+    const runId = searchParams.get('runId');
     
     if (!deviceId) {
       return NextResponse.json({ error: 'deviceId is required' }, { status: 400 });
     }
 
-    let fromDate: Date;
+    let fromDate: Date | undefined;
     let toDate: Date | undefined;
 
-    if (fromParam || toParam) {
+    if (runId) {
+      const run = await prisma.fieldTestRun.findFirst({
+        where: { id: runId, deviceId },
+        select: { id: true },
+      });
+      if (!run) return NextResponse.json({ error: 'Field test not found for this device' }, { status: 404 });
+    } else if (fromParam || toParam) {
       if (!fromParam || !toParam) {
         return NextResponse.json({ error: 'from and to are required together' }, { status: 400 });
       }
@@ -55,8 +62,9 @@ export async function GET(req: NextRequest) {
     const positions = await prisma.position.findMany({
       where: {
         deviceId: deviceId,
+        ...(runId ? { runId } : {}),
         ts: {
-          gte: fromDate,
+          ...(fromDate ? { gte: fromDate } : {}),
           ...(toDate ? { lte: toDate } : {}),
         }
       },

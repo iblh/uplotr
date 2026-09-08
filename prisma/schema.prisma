@@ -58,6 +58,7 @@ model Device {
 
   positions   Position[]
   events      DeviceEvent[]
+  fieldTestRuns FieldTestRun[]
 
   @@index([lastSeen])
   @@map("devices")
@@ -76,11 +77,40 @@ model Position {
   rssi      Float?
   snr       Float?
   source    String?
+  metrics   Json?
+  runId     String?
+  run       FieldTestRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
 
   @@index([deviceId])
   @@index([ts])
   @@index([deviceId, ts])
+  @@index([runId, ts])
   @@map("positions")
+}
+
+model FieldTestRun {
+  id              String   @id @default(uuid())
+  deviceId        String
+  device          Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  name            String
+  notes           String?
+  hardwareVersion String?
+  firmwareVersion String?
+  activityType    String   @default("GROUND")
+  sourceFormat    String?
+  expectedIntervalSeconds Int?
+  minSamples      Int      @default(2)
+  status          String   @default("ACTIVE")
+  startedAt       DateTime @default(now())
+  endedAt         DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  positions       Position[]
+
+  @@index([deviceId, startedAt])
+  @@index([status])
+  @@index([activityType])
+  @@map("field_test_runs")
 }
 
 model DeviceEvent {

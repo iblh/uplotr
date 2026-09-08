@@ -2,6 +2,36 @@
 
 All notable changes are documented here. uplotr follows semantic versioning while in Public Beta.
 
+## [0.3.1-beta.1] - 2026-09-04
+
+### Added
+
+- Drone flight-log import for GPX and generic, PX4, ArduPilot, and Betaflight decoded CSV files
+- Flight reports for altitude, climb, ground and vertical speed, distance from home, and GPS satellite health
+- Run-scoped route viewing and segment coloring by built-in or maker-defined telemetry
+- Explicit activity type, expected reporting interval, minimum sample protocol, and run-comparability checks
+
+### Changed
+
+- Promoted drone and DIY aircraft testing to a first-class maker workflow
+- Increased run-scoped position retrieval to 10,000 samples for flight replay
+
+## [0.3.0-beta.1] - 2026-09-04
+
+### Added
+
+- Structured field-test runs with hardware, firmware, goals, notes, and automatic position capture
+- Arbitrary maker-defined telemetry metrics on position records and replay panels
+- Deterministic run reports for route statistics, battery use, reporting cadence, and data quality
+- Explainable detection for long reporting gaps, possible GPS jumps, and timestamp problems
+- Baseline-to-candidate comparison for completed runs from the same device
+- A field-test workflow in the private console and richer field-test data in the public demo
+
+### Changed
+
+- Repositioned uplotr around field testing for moving hardware instead of generic fleet tracking
+- Updated landing, Open Graph, quick-start, and API documentation for the 0.3 workflow
+
 ## [0.2.0-beta.1] - 2026-09-02
 
 ### Added
