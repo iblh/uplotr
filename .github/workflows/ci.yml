@@ -51,7 +51,7 @@ jobs:
           npm_config_fetch_timeout: 30000
       - name: Review dependency changes
         if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
       - run: pnpm build
