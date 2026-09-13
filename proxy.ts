@@ -35,7 +35,15 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(appUrl);
   }
 
-  if (pathname.startsWith("/_next") || PUBLIC_ASSET.test(pathname) || pathname.startsWith("/docs/")) {
+  // `/_vercel/insights/*` is where the Web Analytics script and its beacons
+  // live. These are extensionless paths, so without this they fall through to
+  // the redirect below and every anonymous page view is bounced to /login.
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/_vercel/") ||
+    PUBLIC_ASSET.test(pathname) ||
+    pathname.startsWith("/docs/")
+  ) {
     return NextResponse.next();
   }
 
