@@ -8,7 +8,7 @@ import MapboxMap, {
   Marker,
   NavigationControl,
   FullscreenControl,
-} from 'react-map-gl';
+} from 'react-map-gl/mapbox';
 import MapLibreMap, {
   Source as MapLibreSource,
   Layer as MapLibreLayer,
