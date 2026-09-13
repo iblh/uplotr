@@ -4,6 +4,8 @@ import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css"; // Important for mapbox
 import "maplibre-gl/dist/maplibre-gl.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Analytics } from "@/components/analytics";
+import { ConsentBanner } from "@/components/consent-banner";
 import packageJson from '@/package.json';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -41,6 +43,8 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
+        <Analytics />
+        <ConsentBanner />
       </body>
     </html>
   );
