@@ -54,6 +54,10 @@ jobs:
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
+          # See pnpm-workspace.yaml for why maplibre-gl is held at 5.24.0 and
+          # why this advisory is not reachable in this app. Remove once
+          # react-map-gl renders with maplibre-gl >= 6.4.1.
+          allow-ghsas: GHSA-jrc7-96c5-q579
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e --project=desktop-chromium
