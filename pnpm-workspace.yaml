@@ -1,3 +1,20 @@
 minimumReleaseAgeExclude:
   - next@16.3.4
   - eslint-config-next@16.3.4
+
+# maplibre-gl is pinned to 5.24.0 because react-map-gl v8 (@vis.gl/react-maplibre)
+# cannot render with maplibre-gl 6.x: the map constructs, but the style never
+# finishes loading, so no basemap tiles are ever requested. Verified across
+# react-map-gl 8.0.4/8.1.3 x maplibre 6.4.1/6.9.0; 4.7.1 and 5.24.0 both render.
+#
+# CVE-2026-85061 (GHSA-jrc7-96c5-q579) affects maplibre-gl <= 6.4.0, so 5.24.0
+# carries it. It is an XSS sanitizer bypass in DOM.sanitize(), which requires
+# untrusted HTML to reach maplibre's sanitizer. This app has no Popup,
+# setHTML, setDOMContent or dangerouslySetInnerHTML anywhere near the map; the
+# only HTML surface is the built-in attribution control with static strings.
+#
+# REMOVE THIS IGNORE once react-map-gl renders with maplibre-gl >= 6.4.1.
+# Tracking: https://github.com/visgl/react-map-gl (no upstream issue yet)
+auditConfig:
+  ignoreCves:
+    - CVE-2026-85061
