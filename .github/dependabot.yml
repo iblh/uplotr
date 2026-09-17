@@ -4,8 +4,17 @@ updates:
     directory: /
     schedule: { interval: weekly }
     groups:
-      production-dependencies: { dependency-type: production }
-      development-dependencies: { dependency-type: development }
+      # prisma (CLI, a devDependency) and @prisma/client (a dependency) must be
+      # upgraded together: a mismatched pair fails `prisma generate` in postinstall.
+      # This group is listed first so it wins over the dependency-type groups below.
+      prisma:
+        patterns: ["prisma", "@prisma/*"]
+      production-dependencies:
+        dependency-type: production
+        exclude-patterns: ["prisma", "@prisma/*"]
+      development-dependencies:
+        dependency-type: development
+        exclude-patterns: ["prisma", "@prisma/*"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
