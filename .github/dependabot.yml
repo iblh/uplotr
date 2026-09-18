@@ -15,6 +15,15 @@ updates:
       development-dependencies:
         dependency-type: development
         exclude-patterns: ["prisma", "@prisma/*"]
+    ignore:
+      # react-map-gl v8 (@vis.gl/react-maplibre) cannot render with maplibre-gl
+      # 6.x: the map constructs and the style parses, but it never reaches
+      # `loaded`, so no basemap tiles are requested and the map is blank.
+      # maplibre-gl is pinned to 5.24.0 in package.json; see pnpm-workspace.yaml
+      # for the matching CVE-2026-85061 exemption and its removal condition.
+      # REMOVE THIS IGNORE once react-map-gl renders with maplibre-gl >= 6.4.1.
+      - dependency-name: maplibre-gl
+        versions: [">=6.0.0"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
